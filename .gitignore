@@ -1,0 +1,70 @@
+# .gitignore for Terraform GKE WireGuard + Pi-hole Stack
+
+# Terraform files
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform/
+.terraform.lock.hcl
+tfplan
+tfplan.*
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Ignore override files as they are usually used to override resources locally
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Ignore transient lock info files created by terraform apply
+.terraform.tfstate.lock.info
+
+# Include .terraform.lock.hcl in version control to ensure everyone uses same provider versions
+!.terraform.lock.hcl
+
+# Kubernetes config files
+kubeconfig*
+*.kubeconfig
+
+# Helm
+.helm/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+
+# Backup files
+*.backup
+*.tar.gz
+pihole-backup-*.tar.gz
+
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+tmp/
+temp/
+
+# Generated documentation
+TERRAFORM.md
