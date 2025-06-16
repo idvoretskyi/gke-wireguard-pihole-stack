@@ -26,25 +26,25 @@ check-env: ## Check required environment variables
 # Initialize Terraform
 init: check-prereqs ## Initialize Terraform
 	@echo "Initializing Terraform..."
-	@terraform init
+	@cd tf && terraform init
 	@echo "✅ Terraform initialized"
 
 # Validate Terraform configuration
 validate: init ## Validate Terraform configuration
 	@echo "Validating Terraform configuration..."
-	@terraform validate
+	@cd tf && terraform validate
 	@echo "✅ Terraform configuration is valid"
 
 # Format Terraform code
 fmt: ## Format Terraform code
 	@echo "Formatting Terraform code..."
-	@terraform fmt -recursive
+	@cd tf && terraform fmt -recursive
 	@echo "✅ Code formatted"
 
 # Plan deployment
 plan: check-env validate ## Plan Terraform deployment
 	@echo "Planning deployment..."
-	@terraform plan \
+	@cd tf && terraform plan \
 		-var="project_id=$(GOOGLE_PROJECT)" \
 		-var="region=$(or $(GOOGLE_REGION),us-central1)" \
 		-out=tfplan
@@ -53,7 +53,7 @@ plan: check-env validate ## Plan Terraform deployment
 # Apply deployment
 apply: plan ## Apply Terraform deployment
 	@echo "Applying deployment..."
-	@terraform apply tfplan
+	@cd tf && terraform apply tfplan
 	@echo "✅ Deployment completed"
 	@$(MAKE) configure-kubectl
 
@@ -61,8 +61,8 @@ apply: plan ## Apply Terraform deployment
 configure-kubectl: ## Configure kubectl for the cluster
 	@echo "Configuring kubectl..."
 	@gcloud container clusters get-credentials \
-		$$(terraform output -raw cluster_name) \
-		--region $$(terraform output -raw cluster_location) \
+		$$(cd tf && terraform output -raw cluster_name) \
+		--region $$(cd tf && terraform output -raw cluster_location) \
 		--project $(GOOGLE_PROJECT)
 	@echo "✅ kubectl configured"
 
@@ -159,23 +159,23 @@ destroy: ## Destroy all resources
 	@echo "⚠️  This will destroy ALL resources!"
 	@echo "⚠️  Make sure you have backups of any important data!"
 	@read -p "Type 'yes' to confirm destruction: " confirm && [ "$$confirm" = "yes" ] || exit 1
-	@terraform destroy \
+	@cd tf && terraform destroy \
 		-var="project_id=$(GOOGLE_PROJECT)" \
 		-var="region=$(or $(GOOGLE_REGION),us-central1)"
 
 # Clean up local files
 clean: ## Clean up local Terraform files
 	@echo "Cleaning up local files..."
-	@rm -rf .terraform
-	@rm -f terraform.tfstate*
-	@rm -f tfplan
+	@rm -rf tf/.terraform
+	@rm -f tf/terraform.tfstate*
+	@rm -f tf/tfplan
 	@rm -f *.tar.gz
 	@echo "✅ Local files cleaned"
 
 # Generate documentation
 docs: ## Generate documentation
 	@echo "Generating documentation..."
-	@terraform-docs markdown table --output-file TERRAFORM.md .
+	@terraform-docs markdown table --output-file ../TERRAFORM.md tf/
 	@echo "✅ Documentation generated: TERRAFORM.md"
 
 # All-in-one deployment

@@ -1,14 +1,14 @@
 # .gitignore for Terraform GKE WireGuard + Pi-hole Stack
 
 # Terraform files
-*.tfstate
-*.tfstate.*
-*.tfvars
-!*.tfvars.example
-.terraform/
-.terraform.lock.hcl
-tfplan
-tfplan.*
+tf/*.tfstate
+tf/*.tfstate.*
+tf/*.tfvars
+!tf/*.tfvars.example
+tf/.terraform/
+tf/.terraform.lock.hcl
+tf/tfplan
+tf/tfplan.*
 
 # Crash log files
 crash.log

@@ -10,6 +10,23 @@ This repository contains Terraform code to deploy a self-hosted VPN solution usi
 - **Networking**: Proper firewall rules and service exposure
 - **Security**: Least privilege IAM and secure admin access
 
+## Project Structure
+
+```
+├── tf/                          # Terraform configuration files
+│   ├── providers.tf            # Provider configurations
+│   ├── variables.tf            # Variable definitions
+│   ├── gke.tf                  # GKE cluster configuration
+│   ├── kubernetes.tf           # Kubernetes resources
+│   ├── wireguard.tf           # WireGuard deployment
+│   ├── pihole.tf              # Pi-hole deployment
+│   ├── outputs.tf             # Output definitions
+│   └── terraform.tfvars.example # Example configuration
+├── deploy.sh                   # Automated deployment script
+├── Makefile                   # Management commands
+└── docs/                      # Documentation files
+```
+
 ## Prerequisites
 
 1. Google Cloud Platform account with billing enabled
@@ -37,9 +54,11 @@ This setup uses:
 
 3. Initialize and apply Terraform:
    ```bash
+   cd tf
    terraform init
    terraform plan -var="project_id=${GOOGLE_PROJECT}" -var="region=${GOOGLE_REGION}"
    terraform apply -var="project_id=${GOOGLE_PROJECT}" -var="region=${GOOGLE_REGION}"
+   cd ..
    ```
 
 4. Configure kubectl:
@@ -83,7 +102,9 @@ This setup uses:
 ## Cleanup
 
 ```bash
+cd tf
 terraform destroy -var="project_id=${GOOGLE_PROJECT}" -var="region=${GOOGLE_REGION}"
+cd ..
 ```
 
 ## Support

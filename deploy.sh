@@ -95,17 +95,21 @@ enable_apis() {
 # Initialize Terraform
 init_terraform() {
     print_status "Initializing Terraform..."
+    cd tf
     terraform init
+    cd ..
     print_success "Terraform initialized"
 }
 
 # Plan Terraform deployment
 plan_terraform() {
     print_status "Planning Terraform deployment..."
+    cd tf
     terraform plan \
         -var="project_id=$GOOGLE_PROJECT" \
         -var="region=$GOOGLE_REGION" \
         -out=tfplan
+    cd ..
     
     print_success "Terraform plan created"
     print_warning "Review the plan above before continuing"
@@ -114,7 +118,9 @@ plan_terraform() {
 # Apply Terraform configuration
 apply_terraform() {
     print_status "Applying Terraform configuration..."
+    cd tf
     terraform apply tfplan
+    cd ..
     print_success "Terraform deployment completed"
 }
 
@@ -122,8 +128,10 @@ apply_terraform() {
 configure_kubectl() {
     print_status "Configuring kubectl..."
     
+    cd tf
     cluster_name=$(terraform output -raw cluster_name)
     cluster_location=$(terraform output -raw cluster_location)
+    cd ..
     
     gcloud container clusters get-credentials "$cluster_name" \
         --region "$cluster_location" \
@@ -241,9 +249,11 @@ case "${1:-}" in
         print_warning "This will destroy all resources. Are you sure?"
         read -p "Type 'yes' to confirm: " -r
         if [[ $REPLY == "yes" ]]; then
+            cd tf
             terraform destroy \
                 -var="project_id=$GOOGLE_PROJECT" \
                 -var="region=$GOOGLE_REGION"
+            cd ..
         else
             print_status "Destroy cancelled"
         fi

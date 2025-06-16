@@ -83,15 +83,17 @@ sudo apt update && sudo apt install helm
 
 1. **Copy and customize configuration:**
    ```bash
-   cp terraform.tfvars.example terraform.tfvars
-   # Edit terraform.tfvars with your settings
+   cp tf/terraform.tfvars.example tf/terraform.tfvars
+   # Edit tf/terraform.tfvars with your settings
    ```
 
 2. **Deploy using Terraform:**
    ```bash
+   cd tf
    terraform init
    terraform plan -var="project_id=$GOOGLE_PROJECT" -var="region=$GOOGLE_REGION"
    terraform apply -var="project_id=$GOOGLE_PROJECT" -var="region=$GOOGLE_REGION"
+   cd ..
    ```
 
 3. **Configure kubectl:**
@@ -221,7 +223,7 @@ kubectl rollout restart deployment/pihole -n dns
 
 ### 2. Restrict Network Access
 
-Edit your `terraform.tfvars` to restrict access to your IP ranges:
+Edit your `tf/terraform.tfvars` to restrict access to your IP ranges:
 
 ```hcl
 authorized_networks = [
@@ -234,7 +236,9 @@ authorized_networks = [
 
 Then apply the changes:
 ```bash
+cd tf
 terraform apply -var="project_id=$GOOGLE_PROJECT" -var="region=$GOOGLE_REGION"
+cd ..
 ```
 
 ### 3. Enable Additional Security Features
@@ -339,7 +343,9 @@ To destroy all resources and stop billing:
 make destroy
 
 # Using Terraform directly
+cd tf
 terraform destroy -var="project_id=$GOOGLE_PROJECT" -var="region=$GOOGLE_REGION"
+cd ..
 ```
 
 **Warning:** This will permanently delete all resources and data!
