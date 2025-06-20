@@ -1,0 +1,56 @@
+# Terraform configuration values
+# Copy this file to terraform.tfvars and customize as needed
+
+# GCP Project Configuration
+project_id = "your-gcp-project-id"
+region     = "us-central1"
+zones      = ["us-central1-a", "us-central1-b"]
+
+# Cluster Configuration
+cluster_name     = "wireguard-cluster"
+node_pool_name   = "primary-pool"
+environment      = "dev"
+
+# Node Configuration (Cost-Optimized)
+machine_type    = "e2-micro"         # Cheapest option: ~$6/month per instance
+node_count      = 2                  # Minimum for redundancy
+min_node_count  = 1                  # Scale down when not needed
+max_node_count  = 3                  # Scale up when needed
+preemptible     = true               # 60-90% cost savings (not recommended for production)
+disk_size_gb    = 20                 # Minimal disk size
+disk_type       = "pd-standard"      # Cheapest disk type
+
+# Security Configuration
+enable_network_policy   = true       # Enable Calico network policies
+enable_workload_identity = true      # Enhanced security
+enable_private_nodes    = false      # Set to true for enhanced security (requires NAT)
+
+# Application Configuration
+wireguard_port = 51820               # Standard WireGuard port
+pihole_storage_size = "5Gi"          # Storage for Pi-hole data
+
+# Admin Passwords (CHANGE THESE!)
+wireguard_admin_password = "ChangeMePlease123!"
+pihole_admin_password    = "ChangeMePlease123!"
+
+# Network Access Control
+# Uncomment and customize to restrict access to specific IP ranges
+authorized_networks = [
+  {
+    cidr_block   = "0.0.0.0/0"
+    display_name = "All networks"
+  }
+  # Add your specific IP ranges for better security:
+  # {
+  #   cidr_block   = "203.0.113.0/24"
+  #   display_name = "Office network"
+  # }
+]
+
+# Resource Tags
+tags = {
+  terraform   = "true"
+  project     = "wireguard-pihole"
+  owner       = "your-name"
+  cost-center = "personal"
+}

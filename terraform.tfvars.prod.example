@@ -1,0 +1,39 @@
+# Production Configuration Overrides
+# Use this file for production deployments with enhanced security and reliability
+
+# Override cost-optimized settings for production
+machine_type    = "e2-small"         # More reliable than e2-micro
+node_count      = 3                  # Higher availability
+min_node_count  = 2                  # Always keep minimum nodes
+max_node_count  = 5                  # Allow more scaling
+preemptible     = false              # Use regular instances for production
+disk_size_gb    = 50                 # More storage for logs and data
+disk_type       = "pd-ssd"           # Faster SSD storage
+
+# Enhanced Security
+enable_private_nodes    = true       # Nodes without public IPs
+enable_network_policy   = true       # Strict network policies
+enable_workload_identity = true      # Enhanced authentication
+
+# Restricted Network Access (customize for your needs)
+authorized_networks = [
+  {
+    cidr_block   = "203.0.113.0/24"   # Replace with your office/home IP range
+    display_name = "Authorized network"
+  }
+]
+
+# Production Environment
+environment = "prod"
+
+# Larger storage for production logs and data
+pihole_storage_size = "20Gi"
+
+# Production tags
+tags = {
+  terraform   = "true"
+  project     = "wireguard-pihole"
+  environment = "production"
+  backup      = "required"
+  monitoring  = "enabled"
+}
