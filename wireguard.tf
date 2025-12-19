@@ -21,20 +21,20 @@ resource "helm_release" "wg_easy" {
       # Environment variables for wg-easy
       env = {
         # WireGuard configuration
-        WG_HOST                = "" # Will be set to LoadBalancer IP automatically
-        WG_PORT               = var.wireguard_port
-        WG_DEFAULT_ADDRESS    = "10.8.0.x"
-        WG_DEFAULT_DNS        = "10.2.0.10" # Pi-hole service IP (will be created)
-        WG_ALLOWED_IPS        = "0.0.0.0/0"
+        WG_HOST                 = "" # Will be set to LoadBalancer IP automatically
+        WG_PORT                 = var.wireguard_port
+        WG_DEFAULT_ADDRESS      = "10.8.0.x"
+        WG_DEFAULT_DNS          = "10.2.0.10" # Pi-hole service IP (will be created)
+        WG_ALLOWED_IPS          = "0.0.0.0/0"
         WG_PERSISTENT_KEEPALIVE = "25"
-        
+
         # Web UI configuration
-        PASSWORD              = var.wireguard_admin_password
+        PASSWORD                 = var.wireguard_admin_password
         WG_ENABLE_ONE_TIME_LINKS = "true"
-        
+
         # Advanced settings
-        UI_TRAFFIC_STATS      = "true"
-        UI_CHART_TYPE         = "1" # Line chart
+        UI_TRAFFIC_STATS = "true"
+        UI_CHART_TYPE    = "1" # Line chart
       }
 
       # Service configuration
@@ -134,7 +134,7 @@ resource "kubernetes_service" "wg_easy_internal" {
 
   spec {
     type = "ClusterIP"
-    
+
     selector = {
       "app.kubernetes.io/name"     = "wg-easy"
       "app.kubernetes.io/instance" = "wg-easy"

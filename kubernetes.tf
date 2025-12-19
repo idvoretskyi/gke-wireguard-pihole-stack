@@ -35,7 +35,7 @@ resource "kubernetes_persistent_volume_claim" "pihole_data" {
 
   spec {
     access_modes = ["ReadWriteOnce"]
-    
+
     resources {
       requests = {
         storage = var.pihole_storage_size
