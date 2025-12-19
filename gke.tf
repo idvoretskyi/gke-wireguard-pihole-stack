@@ -16,7 +16,7 @@ resource "google_project_iam_member" "gke_node_sa_bindings" {
     "roles/monitoring.viewer",
     "roles/storage.objectViewer",
   ])
-  
+
   project = var.project_id
   role    = each.value
   member  = "serviceAccount:${google_service_account.gke_node_sa.email}"
@@ -77,7 +77,7 @@ resource "google_compute_router_nat" "nat" {
 resource "google_container_cluster" "primary" {
   name     = var.cluster_name
   location = var.region
-  
+
   # Remove default node pool immediately after cluster creation
   remove_default_node_pool = true
   initial_node_count       = 1

@@ -82,7 +82,7 @@ output "kubectl_config_command" {
 output "service_access_commands" {
   description = "Commands to get service external IPs"
   value = {
-    wireguard_ip = "kubectl get svc wg-easy -n ${kubernetes_namespace.vpn.metadata[0].name} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'"
+    wireguard_ip  = "kubectl get svc wg-easy -n ${kubernetes_namespace.vpn.metadata[0].name} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'"
     pihole_web_ip = "kubectl get svc pihole-serviceTCP -n ${kubernetes_namespace.dns.metadata[0].name} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'"
     pihole_dns_ip = "kubectl get svc pihole-serviceUDP -n ${kubernetes_namespace.dns.metadata[0].name} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'"
   }
@@ -92,13 +92,13 @@ output "service_access_commands" {
 output "estimated_monthly_cost" {
   description = "Estimated monthly cost breakdown (USD, as of 2025)"
   value = {
-    note = "Costs are estimates and may vary based on usage, region, and Google Cloud pricing changes"
+    note                   = "Costs are estimates and may vary based on usage, region, and Google Cloud pricing changes"
     gke_cluster_management = "Free (GKE Autopilot management fee waived for zonal clusters)"
-    compute_instances = "${var.preemptible ? "~$4-6" : "~$15-20"} per ${var.machine_type} instance per month"
-    persistent_disks = "~$0.40 per GB per month for standard persistent disks"
-    load_balancers = "~$18 per month per LoadBalancer"
-    network_egress = "Variable based on VPN usage (~$0.12/GB to internet)"
-    total_estimate = "${var.preemptible ? "$30-50" : "$60-80"} per month for minimal setup"
+    compute_instances      = "${var.preemptible ? "~$4-6" : "~$15-20"} per ${var.machine_type} instance per month"
+    persistent_disks       = "~$0.40 per GB per month for standard persistent disks"
+    load_balancers         = "~$18 per month per LoadBalancer"
+    network_egress         = "Variable based on VPN usage (~$0.12/GB to internet)"
+    total_estimate         = "${var.preemptible ? "$30-50" : "$60-80"} per month for minimal setup"
   }
 }
 
@@ -107,12 +107,12 @@ output "security_notes" {
   description = "Important security configuration notes"
   value = {
     wireguard_admin_password = "Change the default WireGuard admin password immediately!"
-    pihole_admin_password = "Change the default Pi-hole admin password immediately!"
-    load_balancer_access = "Consider restricting LoadBalancer source IP ranges for better security"
-    firewall_rules = "Review and adjust firewall rules based on your security requirements"
-    workload_identity = "Workload Identity is ${var.enable_workload_identity ? "enabled" : "disabled"}"
-    private_nodes = "Private nodes are ${var.enable_private_nodes ? "enabled" : "disabled"}"
-    network_policy = "Network policies are ${var.enable_network_policy ? "enabled" : "disabled"}"
+    pihole_admin_password    = "Change the default Pi-hole admin password immediately!"
+    load_balancer_access     = "Consider restricting LoadBalancer source IP ranges for better security"
+    firewall_rules           = "Review and adjust firewall rules based on your security requirements"
+    workload_identity        = "Workload Identity is ${var.enable_workload_identity ? "enabled" : "disabled"}"
+    private_nodes            = "Private nodes are ${var.enable_private_nodes ? "enabled" : "disabled"}"
+    network_policy           = "Network policies are ${var.enable_network_policy ? "enabled" : "disabled"}"
   }
 }
 
@@ -120,12 +120,12 @@ output "security_notes" {
 output "client_setup_instructions" {
   description = "Instructions for setting up WireGuard clients"
   value = {
-    step_1 = "Get WireGuard web UI IP: kubectl get svc wg-easy -n vpn -o jsonpath='{.status.loadBalancer.ingress[0].ip}'"
-    step_2 = "Access web UI at http://<WIREGUARD_IP>:51821"
-    step_3 = "Login with the admin password you configured"
-    step_4 = "Create client configurations in the web interface"
-    step_5 = "Download client config files or scan QR codes"
-    step_6 = "Import configs to WireGuard clients on your devices"
+    step_1   = "Get WireGuard web UI IP: kubectl get svc wg-easy -n vpn -o jsonpath='{.status.loadBalancer.ingress[0].ip}'"
+    step_2   = "Access web UI at http://<WIREGUARD_IP>:51821"
+    step_3   = "Login with the admin password you configured"
+    step_4   = "Create client configurations in the web interface"
+    step_5   = "Download client config files or scan QR codes"
+    step_6   = "Import configs to WireGuard clients on your devices"
     dns_note = "Clients will automatically use Pi-hole for DNS (configured at 10.2.0.10)"
   }
 }
@@ -134,12 +134,12 @@ output "client_setup_instructions" {
 output "pihole_setup_instructions" {
   description = "Instructions for configuring Pi-hole"
   value = {
-    step_1 = "Get Pi-hole web UI IP: kubectl get svc pihole-serviceTCP -n dns -o jsonpath='{.status.loadBalancer.ingress[0].ip}'"
-    step_2 = "Access Pi-hole admin at http://<PIHOLE_IP>/admin"
-    step_3 = "Login with the admin password you configured"
-    step_4 = "Configure additional blocklists in Tools > Blocklists"
-    step_5 = "Monitor DNS queries in Query Log"
-    step_6 = "Whitelist domains if needed in Domains > Whitelist"
+    step_1   = "Get Pi-hole web UI IP: kubectl get svc pihole-serviceTCP -n dns -o jsonpath='{.status.loadBalancer.ingress[0].ip}'"
+    step_2   = "Access Pi-hole admin at http://<PIHOLE_IP>/admin"
+    step_3   = "Login with the admin password you configured"
+    step_4   = "Configure additional blocklists in Tools > Blocklists"
+    step_5   = "Monitor DNS queries in Query Log"
+    step_6   = "Whitelist domains if needed in Domains > Whitelist"
     dns_note = "Pi-hole is accessible to VPN clients at 10.2.0.10"
   }
 }
@@ -148,14 +148,14 @@ output "pihole_setup_instructions" {
 output "troubleshooting_commands" {
   description = "Useful commands for troubleshooting"
   value = {
-    check_pods = "kubectl get pods --all-namespaces"
-    check_services = "kubectl get svc --all-namespaces"
-    check_pvc = "kubectl get pvc --all-namespaces"
-    wireguard_logs = "kubectl logs -f deployment/wg-easy -n vpn"
-    pihole_logs = "kubectl logs -f deployment/pihole -n dns"
+    check_pods         = "kubectl get pods --all-namespaces"
+    check_services     = "kubectl get svc --all-namespaces"
+    check_pvc          = "kubectl get pvc --all-namespaces"
+    wireguard_logs     = "kubectl logs -f deployment/wg-easy -n vpn"
+    pihole_logs        = "kubectl logs -f deployment/pihole -n dns"
     describe_wireguard = "kubectl describe deployment wg-easy -n vpn"
-    describe_pihole = "kubectl describe deployment pihole -n dns"
-    check_nodes = "kubectl get nodes -o wide"
-    check_events = "kubectl get events --sort-by=.metadata.creationTimestamp"
+    describe_pihole    = "kubectl describe deployment pihole -n dns"
+    check_nodes        = "kubectl get nodes -o wide"
+    check_events       = "kubectl get events --sort-by=.metadata.creationTimestamp"
   }
 }

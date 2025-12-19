@@ -20,36 +20,36 @@ resource "helm_release" "pihole" {
 
       # Pi-hole environment configuration
       admin = {
-        enabled          = true
-        existingSecret   = kubernetes_secret.pihole_admin.metadata[0].name
-        passwordKey      = "password"
+        enabled        = true
+        existingSecret = kubernetes_secret.pihole_admin.metadata[0].name
+        passwordKey    = "password"
       }
 
       # DNS configuration
-      DNS1 = "1.1.1.1"         # Cloudflare DNS
-      DNS2 = "1.0.0.1"         # Cloudflare DNS backup
-      
+      DNS1 = "1.1.1.1" # Cloudflare DNS
+      DNS2 = "1.0.0.1" # Cloudflare DNS backup
+
       # Pi-hole specific settings
-      WEBPASSWORD = ""  # Will use existing secret
-      TZ         = "UTC"
+      WEBPASSWORD  = "" # Will use existing secret
+      TZ           = "UTC"
       DNSMASQ_USER = "root"
-      
+
       # Virtual host for web interface
       VIRTUAL_HOST = "pihole.local"
-      
+
       # Enable query logging
       QUERY_LOGGING = true
-      
+
       # Install recommended packages
-      INSTALL_WEB_SERVER = true
+      INSTALL_WEB_SERVER    = true
       INSTALL_WEB_INTERFACE = true
-      LIGHTTPD_ENABLED = true
+      LIGHTTPD_ENABLED      = true
 
       # Service configuration
       serviceTCP = {
-        enabled = true
-        type    = "LoadBalancer"
-        port    = 80
+        enabled    = true
+        type       = "LoadBalancer"
+        port       = 80
         targetPort = 80
         annotations = {
           "cloud.google.com/load-balancer-type" = "External"
@@ -59,9 +59,9 @@ resource "helm_release" "pihole" {
       }
 
       serviceUDP = {
-        enabled = true
-        type    = "LoadBalancer"
-        port    = 53
+        enabled    = true
+        type       = "LoadBalancer"
+        port       = 53
         targetPort = 53
         annotations = {
           "cloud.google.com/load-balancer-type" = "External"
@@ -70,12 +70,12 @@ resource "helm_release" "pihole" {
 
       # Persistence configuration
       persistentVolumeClaim = {
-        enabled      = true
+        enabled       = true
         existingClaim = kubernetes_persistent_volume_claim.pihole_data.metadata[0].name
       }
 
       # Additional volumes for custom configurations
-      extraVolumes = []
+      extraVolumes      = []
       extraVolumeMounts = []
 
       # Pod security context
@@ -190,8 +190,8 @@ resource "kubernetes_service" "pihole_dns" {
 
   spec {
     type       = "ClusterIP"
-    cluster_ip = "10.2.0.10"  # Fixed IP for DNS resolution
-    
+    cluster_ip = "10.2.0.10" # Fixed IP for DNS resolution
+
     selector = {
       app     = "pihole"
       release = "pihole"
@@ -228,7 +228,7 @@ resource "kubernetes_config_map" "pihole_custom_config" {
       # Add your custom DNS entries here
       # Example: 192.168.1.100 myserver.local
     EOF
-    
+
     "adlists.list" = <<-EOF
       # Additional blocklists for Pi-hole
       https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
@@ -263,17 +263,17 @@ resource "kubernetes_network_policy" "pihole_dns_policy" {
       from {
         namespace_selector {}
       }
-      
+
       ports {
         protocol = "TCP"
         port     = "53"
       }
-      
+
       ports {
         protocol = "UDP"
         port     = "53"
       }
-      
+
       ports {
         protocol = "TCP"
         port     = "80"

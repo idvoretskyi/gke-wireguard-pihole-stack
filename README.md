@@ -10,106 +10,152 @@ This repository contains Terraform code to deploy a self-hosted VPN solution usi
 - **Networking**: Proper firewall rules and service exposure
 - **Security**: Least privilege IAM and secure admin access
 
-## Project Structure
-
-```
-├── tf/                          # Terraform configuration files
-│   ├── providers.tf            # Provider configurations
-│   ├── variables.tf            # Variable definitions
-│   ├── gke.tf                  # GKE cluster configuration
-│   ├── kubernetes.tf           # Kubernetes resources
-│   ├── wireguard.tf           # WireGuard deployment
-│   ├── pihole.tf              # Pi-hole deployment
-│   ├── outputs.tf             # Output definitions
-│   └── terraform.tfvars.example # Example configuration
-├── deploy.sh                   # Automated deployment script
-├── Makefile                   # Management commands
-└── docs/                      # Documentation files
+```mermaid
+graph TD
+    User([User]) --> LB[Load Balancer]
+    LB --> WG[WireGuard VPN]
+    WG --> PH[Pi-hole DNS]
+    PH --> Internet((Internet))
+    WG --> Internet
 ```
 
 ## Prerequisites
 
-1. Google Cloud Platform account with billing enabled
-2. `gcloud` CLI installed and authenticated
-3. Terraform >= 1.0 installed
-4. `kubectl` installed for cluster management
-5. `helm` CLI installed (optional, for manual operations)
+### 1. Required Tools
 
-## Cost Optimization
+**macOS (Homebrew):**
+```bash
+brew install terraform google-cloud-sdk kubernetes-cli helm
+```
 
-This setup uses:
-- **e2-micro instances**: ~$6-8/month per node
-- **Preemptible nodes**: 60-90% cost savings
-- **Regional persistent disks**: Cost-effective storage
-- **Minimal node count**: 1-2 nodes for redundancy
+**Ubuntu/Debian:**
+```bash
+# Install Terraform, GCloud CLI, kubectl, and Helm
+# (Refer to official documentation for latest repository setup)
+sudo apt install terraform google-cloud-cli kubectl helm
+```
+
+### 2. Google Cloud Platform Setup
+
+1.  **Project**: Create or select a GCP project.
+2.  **Billing**: Enable billing for the project.
+3.  **Auth**:
+    ```bash
+    gcloud auth login
+    gcloud auth application-default login
+    ```
 
 ## Quick Start
 
-1. Clone this repository
-2. Set up your GCP project:
-   ```bash
-   export GOOGLE_PROJECT="your-project-id"
-   export GOOGLE_REGION="us-central1"
-   ```
+1.  **Set Environment Variables**:
+    ```bash
+    export GOOGLE_PROJECT="your-project-id"
+    export GOOGLE_REGION="us-central1"
+    ```
 
-3. Initialize and apply Terraform:
-   ```bash
-   cd tf
-   terraform init
-   terraform plan -var="project_id=${GOOGLE_PROJECT}" -var="region=${GOOGLE_REGION}"
-   terraform apply -var="project_id=${GOOGLE_PROJECT}" -var="region=${GOOGLE_REGION}"
-   cd ..
-   ```
+2.  **Initialize and Apply Terraform**:
+    ```bash
+    # Initialize Terraform
+    terraform init
 
-4. Configure kubectl:
-   ```bash
-   gcloud container clusters get-credentials wireguard-cluster --region=${GOOGLE_REGION}
-   ```
+    # Plan deployment
+    terraform plan -var="project_id=${GOOGLE_PROJECT}" -var="region=${GOOGLE_REGION}"
 
-5. Access services:
-   - WireGuard UI: `kubectl get svc wg-easy -o jsonpath='{.status.loadBalancer.ingress[0].ip}'`
-   - Pi-hole Admin: `kubectl get svc pihole-web -o jsonpath='{.status.loadBalancer.ingress[0].ip}'`
+    # Apply deployment
+    terraform apply -var="project_id=${GOOGLE_PROJECT}" -var="region=${GOOGLE_REGION}"
+    ```
 
-## Configuration
+3.  **Configure kubectl**:
+    ```bash
+    gcloud container clusters get-credentials wireguard-cluster --region=${GOOGLE_REGION}
+    ```
 
-### WireGuard Clients
+4.  **Get Service IPs**:
+    ```bash
+    # WireGuard UI
+    kubectl get svc wg-easy -n vpn -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+    
+    # Pi-hole Admin
+    kubectl get svc pihole-serviceTCP -n dns -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+    ```
 
-1. Access the wg-easy web UI using the LoadBalancer IP
-2. Create client configurations
-3. Download and import configs to your WireGuard clients
+## Operations & Configuration
+
+### WireGuard Setup
+1.  Open the WireGuard UI IP (default port 51821) in your browser.
+2.  Login with password (default: `ChangeMePlease123!`). **Change this in `terraform.tfvars` before deploying for production.**
+3.  Create a client and download the `.conf` or scan the QR code.
 
 ### Pi-hole Setup
+1.  Open the Pi-hole Admin IP (`/admin`) in your browser.
+2.  Login with password (default: `ChangeMePlease123!`).
+3.  Configure Blocklists (Group Management > Adlists).
 
-1. Access Pi-hole admin interface
-2. Configure blocklists and whitelist domains as needed
-3. Note the Pi-hole service IP for DNS configuration
+### Cost Optimization
+This stack is optimizing for cost by default:
+- **e2-micro instances**: ~$6-8/month per node.
+- **Preemptible nodes**: Enabled by default for 60-90% savings.
+- **Regional Persistent Disks**: Cost-effective storage.
 
-## Security Considerations
+To optimize further:
+- **Scale Down**: Update `node_count` in `terraform.tfvars`.
+- **Spot Instances**: Ensure `preemptible = true`.
 
-- Change default passwords immediately
-- Restrict LoadBalancer source IP ranges
-- Enable GKE Workload Identity
-- Use Google Cloud Armor for additional protection
-- Regularly update container images
+## Security Best Practices
 
-## Monitoring and Maintenance
+1.  **Change Passwords**: Never use the default passwords in production.
+2.  **Restrict Access**: Update `authorized_networks` in `terraform.tfvars` to only allow your IP.
+3.  **Private Nodes**: Set `enable_private_nodes = true` for enhanced security (requires Cloud NAT).
+4.  **Network Policy**: Enabled by default (Calico) to isolate workloads.
 
-- Monitor GKE cluster health in Google Cloud Console
-- Check Pi-hole logs for DNS blocking effectiveness
-- Update WireGuard client configurations as needed
-- Scale nodes based on usage patterns
+## GKE Technical Details
+
+### Kernel Module Support
+WireGuard requires kernel modules (`NET_ADMIN`, `SYS_MODULE`). This setup automatically configures:
+- Privileged containers for WireGuard.
+- Ubuntu or COS images with necessary capabilities.
+
+### Networking
+- **VPC-native**: Uses Alias IPs for performant pod networking.
+- **Firewall Rules**: Automatically creates rules for UDP:51820 (VPN) and TCP ports for Web UIs.
+
+## Troubleshooting
+
+### Pods Not Starting
+**Symptoms**: `Pending` or `CrashLoopBackOff`.
+**Fix**:
+1. Check resources: `kubectl describe nodes`.
+2. Check logs: `kubectl logs -n vpn deployment/wg-easy`.
+3. If "Insufficient cpu/memory", try upgrading `machine_type` in `terraform.tfvars`.
+
+### Services Pending External IP
+**Symptoms**: External IP stays `<pending>`.
+**Fix**:
+1. Check quotas in GCP Console (IP addresses).
+2. Ensure you haven't hit the limit for confirming LoadBalancers.
+
+### VPN Connects but No Internet
+**Fix**:
+1. Check `sysctl` settings on nodes: `kubectl get daemonset`.
+2. Verify Firewall rules allow `0.0.0.0/0` (or your IP) on UDP:51820.
+3. Check Pi-hole is running: `kubectl get pods -n dns`.
+
+### Diagnostics Commands
+```bash
+# Check all resources
+kubectl get all -A
+
+# Check node status
+kubectl get nodes -o wide
+
+# Check logs
+kubectl logs -l app=wg-easy -n vpn
+kubectl logs -l app=pihole -n dns
+```
 
 ## Cleanup
 
+To remove all resources and stop billing:
 ```bash
-cd tf
 terraform destroy -var="project_id=${GOOGLE_PROJECT}" -var="region=${GOOGLE_REGION}"
-cd ..
 ```
-
-## Support
-
-For issues and questions, check the following:
-- [wg-easy documentation](https://github.com/wg-easy/wg-easy)
-- [Pi-hole documentation](https://docs.pi-hole.net/)
-- [GKE documentation](https://cloud.google.com/kubernetes-engine/docs)
