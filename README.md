@@ -76,7 +76,7 @@ sudo apt install terraform google-cloud-cli kubectl helm
     kubectl get svc wg-easy -n vpn -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
     
     # Pi-hole Admin
-    kubectl get svc pihole-web -n dns -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+    kubectl get svc pihole-serviceTCP -n dns -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
     ```
 
 ## Operations & Configuration
